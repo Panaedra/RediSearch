@@ -2,6 +2,10 @@
 #include "dep/thpool/thpool.h"
 #include <unistd.h>
 
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#endif            
+
 static threadpool ConcurrentSearchThreadPool = NULL;
 static threadpool ConcurrentIndexThreadPool = NULL;
 

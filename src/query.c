@@ -18,6 +18,10 @@
 #include "tag_index.h"
 #include "concurrent_ctx.h"
 
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
+#endif            
+
 static void QueryTokenNode_Free(QueryTokenNode *tn) {
 
   if (tn->str) free(tn->str);

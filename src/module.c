@@ -32,6 +32,10 @@
 #include "gc.h"
 #include "rmalloc.h"
 
+#ifndef __STRING 
+# define __STRING(x) #x 
+#endif
+
 #define LOAD_INDEX(ctx, srcname, write)                                                     \
   ({                                                                                        \
     IndexSpec *sptmp = IndexSpec_Load(ctx, RedisModule_StringPtrLen(srcname, NULL), write); \

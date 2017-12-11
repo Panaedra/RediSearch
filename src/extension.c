@@ -8,6 +8,40 @@
 #include "dep/triemap/triemap.h"
 #include "query.h"
 
+#ifdef _AIX
+int vasprintf(char **dst, const char * pcFormat, va_list ap)
+{
+  int len = 512;      /* Worked quite well on our project */
+  int allocated = 0;
+  va_list ap_copy;
+  char *buff = NULL;
+
+  while(len >= allocated) {
+    free(buff);
+    buff = malloc(len+1);
+    if(buff) {
+      allocated = len+1;
+      va_copy(ap_copy, ap);
+      len = vsnprintf(buff, len+1, pcFormat, ap_copy);
+      va_end(ap_copy);
+    }
+    else   /* malloc() failed */
+      return -1;
+  }
+  *dst = buff;
+  return len;
+}
+int asprintf(char **dst, const char * pcFormat, ...)
+{
+va_list ap;
+
+  va_start(ap, pcFormat);
+  int len = vasprintf(dst, pcFormat, ap);
+  va_end(ap);
+  return len;
+}
+#endif
+
 /* The registry for query expanders. Initialized by Extensions_Init() */
 TrieMap *__queryExpanders = NULL;
 

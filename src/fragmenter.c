@@ -15,6 +15,19 @@
 #define MY_QSORTR_ARGS(ctx, a, b) const void *a, const void *b, void *ctx
 #endif
 
+#ifdef _AIX
+#ifdef _GNU_SOURCE // Note: we want sort_r_simple in "sort_r.h".
+#define lcl_GNU_SOURCE _GNU_SOURCE
+#undef _GNU_SOURCE
+#endif
+#include "sort_r.h" // Note: wget https://github.com/noporpoise/sort_r/raw/master/sort_r.h --no-check-certificate
+#ifdef lcl_GNU_SOURCE
+#define _GNU_SOURCE lcl_GNU_SOURCE
+#undef lcl_GNU_SOURCE
+#endif
+#define myQsort_r(arr, nelem, elemSize, compfn, arg) sort_r(arr, nelem, elemSize, compfn, arg)
+#endif
+
 // Estimated characters per token
 #define EST_CHARS_PER_TOK 6
 
