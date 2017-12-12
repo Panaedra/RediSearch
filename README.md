@@ -62,6 +62,24 @@ OK
 
 ```
 
+##### Googlegroups conversation
+
+Good info, could well be endianness (AIX=BE). 
+
+Perhaps I could do an extra test on Linux zseries (like RHEL on IBM Power), which is Linux big endian. Will take some time to set up though, and has to be worth the effort.
+
+> _On Tuesday, December 12, 2017 at 9:56:28 AM UTC+1, Dvir Volk wrote:_
+This looks like a problem with the encoder/decoder of the inverted index, it uses various schemes of integer encodings, we're probably relying on endinanness somewhere and this causes the decoded records to be junk. 
+
+>> _On Monday, December 11, 2017 at 6:52:13 PM UTC+2, tw-bert wrote:_
+I am interested in the AIX portability of RediSearch, and am trying to get it working on AIX 7.1 x64.
+I got Redis 4.0.6 up and running pretty smoothly.
+I ran into a few issues with RediSearch 1.0.1 (1.0.2 was released a few minutes later ;) ), see here for my efforts so far: https://github.com/Panaedra/RediSearch .
+So, it does something, and even indexes the documents, but FT.SEARCH finds nothing.
+Any idea's on what's wrong? Can't put my finger on it. Any help appreciated.
+Cheers, TW
+
+ 
 
 ### Extra build steps, Notes
 
