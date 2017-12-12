@@ -66,7 +66,7 @@ OK
 
 Good info, could well be endianness (AIX=BE). 
 
-Perhaps I could do an extra test on Linux zseries (like RHEL on IBM Power), which is Linux big endian. Will take some time to set up though, and has to be worth the effort.
+Perhaps I could do an extra test on Linux zseries (like RHEL on IBM Power), which is Linux big endian. Will take some time to set up though, and has to be worth the effort. Possibly use [hercules](https://www.linux.com/learn/how-run-your-own-mainframe-linux).
 
 > _On Tuesday, December 12, 2017 at 9:56:28 AM UTC+1, Dvir Volk wrote:_
 This looks like a problem with the encoder/decoder of the inverted index, it uses various schemes of integer encodings, we're probably relying on endinanness somewhere and this causes the decoded records to be junk. 
