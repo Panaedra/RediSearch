@@ -26,7 +26,14 @@ else
 endif
 export CFLAGS
 
-
+# Compile flags for AIX. Tested on AIX 7.1 x64, Perzl gcc build chain.
+ifeq ($(OSNAME),AIX
+CFLAGS += -maix64 -D_AIX -D_AIX53 -D_AIX61 -D_AIX71 -I/opt/freeware/include
+export CFLAGS
+SHOBJ_LDFLAGS += -maix64 -L/opt/freeware/lib64 -L/opt/freeware/lib -Wl,-blibpath:/opt/freeware/lib64:/opt/freeware/lib/pthread/ppc64:/opt/freeware/lib:/usr/lib:/lib,-bmaxdata:0x80000000
+LD=$(CC)
+export LD
+endif # AIX
 
 # Sources
 SOURCEDIR:=$(shell pwd -P)

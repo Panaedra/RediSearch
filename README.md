@@ -1,84 +1,111 @@
-[![CircleCI](https://circleci.com/gh/RedisLabsModules/RediSearch/tree/master.svg?style=svg)](https://circleci.com/gh/RedisLabsModules/RediSearch/tree/master)
-
-# RediSearch
+# RediSearch AIX 
 
 ### Full-Text search over redis by RedisLabs
 ![logo.png](docs/logo.png)
 
-### See Full Documentation at [http://redisearch.io](http://redisearch.io)
+See the original [repo](https://github.com/RedisLabsModules/RediSearch) for code that's actually useful.
 
-### Latest Release: [1.0.0](https://github.com/RedisLabsModules/RediSearch/releases)
+This repository fork is just for analyzing AIX portability of RediSearch. 
 
-# Overview
+### What's happening as of 2017-12-11 on AIX, Redis 4.0.6, RediSearch 1.0.1
 
-Redisearch implements a search engine on top of redis, but unlike other redis
-search libraries, it does not use internal data structures like sorted sets.
+```lisp
+[@srv-benchmark-aix:/src/redisearch/RediSearch-1.0.1/src]# redis-server --loadmodule /src/redisearch/RediSearch-1.0.1/src/redisearch.so
+19595414:C 11 Dec 16:16:57.654 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+19595414:C 11 Dec 16:16:57.654 # Redis version=4.0.6, bits=64, commit=00000000, modified=0, pid=19595414, just started
+19595414:C 11 Dec 16:16:57.654 # Configuration loaded
+19595414:M 11 Dec 16:16:57.657 * Increased maximum number of open files to 10032 (it was originally set to 5000).
+                _._
+           _.-``__ ''-._
+      _.-``    `.  `_.  ''-._           Redis 4.0.6 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._
+ (    '      ,       .-`  | `,    )     Running in standalone mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
+ |    `-._   `._    /     _.-'    |     PID: 19595414
+  `-._    `-._  `-./  _.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |           http://redis.io
+  `-._    `-._`-.__.-'_.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |
+  `-._    `-._`-.__.-'_.-'    _.-'
+      `-._    `-.__.-'    _.-'
+          `-._        _.-'
+              `-.__.-'
 
-Inverted indexes are stored as a special compressed data type that allows for fast
-indexing and search speed, and low memory footprint.
-
-This also enables more advanced features, like exact phrase matching and numeric filtering for text queries,
-that are not possible or efficient with traditional redis search approaches.
-
-# Docker Image
-
-[https://hub.docker.com/r/redislabs/redisearch/](https://hub.docker.com/r/redislabs/redisearch/)
-
-```sh
-$ docker run -p 6379:6379 redislabs/redisearch:latest
+19595414:M 11 Dec 16:16:57.658 # Server initialized
+19595414:M 11 Dec 16:16:57.660 * <ft> Configuration: concurrent mode: 1, ext load: , min prefix: 2, max expansions: 200,
+thread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this systemthread_do(): pthread_setname_np is not supported on this system19595414:M 11 Dec 16:16:57.661 * <ft> Initialized thread pool!
+19595414:M 11 Dec 16:16:57.662 * Module 'ft' loaded from /src/redisearch/RediSearch-1.0.1/src/redisearch.so
+19595414:M 11 Dec 16:16:57.662 * Ready to accept connections
 ```
-# Mailing List / Forum
 
-Got questions? Feel free to ask at the [RediSearch mailing list](https://groups.google.com/forum/#!forum/redisearch).
+```lisp
+Testing it:
+[@srv-benchmark-aix:/home/src/redis-4.0.6]# redis-cli
+127.0.0.1:6379> FT.CREATE "ftFoo" STOPWORDS 0 SCHEMA x TEXT
+OK
+127.0.0.1:6379> FT.ADD "ftFoo" "ftFoo_01" 1.0 'REPLACE' 'FIELDS' x 'hello world'
+OK
+127.0.0.1:6379> FT.SEARCH "ftFoo" world
+1) (integer) 0
+-> Nope, not working alas.
+-> It did index something:
+127.0.0.1:6379> keys *
+1) "ft:ftFoo/world"
+2) "idx:ftFoo"
+3) "ft:ftFoo/hello"
+4) "ftFoo_01"
+127.0.0.1:6379> hgetall ftFoo_01
+1) "x"
+2) "hello world"
 
-# Client Libraries
+```
 
-Official (Redis Labs) and community Clients:
+##### Googlegroups conversation
 
-| Language | Library | Author | License | Comments |
-|---|---|---|---|---|
-|Python | [redisearch-py](https://github.com/RedisLabs/redisearch-py) | Redis Labs | BSD | Usually the most up-to-date client library |
-| Java | [JRediSearch](https://github.com/RedisLabs/JRediSearch) | Redis Labs | BSD | |
-| Go | [redisearch-go](https://github.com/RedisLabs/redisearch-go) | Redis Labs | BSD | Incomplete API |
-| JavaScript | [RedRediSearch](https://github.com/stockholmux/redredisearch) | Kyle J. Davis | MIT | Partial API, compatible with [Reds](https://github.com/tj/reds) |
-| C# | [NRediSearch](https://libraries.io/nuget/NRediSearch) | Marc Gravell | MIT | Part of StackExchange.Redis |
-| PHP | [redisearch-php](https://github.com/ethanhann/redisearch-php) | Ethan Hann | MIT |
-| Ruby on Rails | [redi_search_rails](https://github.com/dmitrypol/redi_search_rails)  | Dmitry Polyakovsky | MIT | |
-| Ruby | [redisearch-rb](https://github.com/vruizext/redisearch-rb) | Victor Ruiz | MIT | |
+Good info, could well be endianness (AIX=BE). 
 
-## Primary Features:
+Perhaps I could do an extra test on Linux zseries (like RHEL on IBM Power), which is Linux big endian. Will take some time to set up though, and has to be worth the effort. Possibly use [hercules](https://www.linux.com/learn/how-run-your-own-mainframe-linux).
 
-* Full-Text indexing of multiple fields in documents.
-* Incremental indexing without performance loss.
-* Document ranking (provided manually by the user at index time).
-* Field weights.
-* Complex boolean queries with AND, OR, NOT operators between sub-queries.
-* Prefix matching in full-text queries.
-* Auto-complete suggestions (with fuzzy prefix suggestions)
-* Exact Phrase Search.
-* Stemming based query expansion in [many languages](http://redisearch.io/Stemming/) (using [Snowball](http://snowballstem.org/)).
-* Support for logographic (Chinese, etc.) tokenization and querying (using [Friso](https://github.com/lionsoul2014/friso))
-* Limiting searches to specific document fields (up to 32 fields supported).
-* Numeric filters and ranges.
-* Geographical search utilizing redis' own GEO commands.
-* Supports any utf-8 encoded text.
-* Retrieve full document content or just ids.
-* Automatically index existing HASH keys as documents.
-* Document Deletion (Update can be done by deletion and then re-insertion).
-* Sortable properties (i.e. sorting users by age or name).
+> _On Tuesday, December 12, 2017 at 9:56:28 AM UTC+1, Dvir Volk wrote:_
+This looks like a problem with the encoder/decoder of the inverted index, it uses various schemes of integer encodings, we're probably relying on endinanness somewhere and this causes the decoded records to be junk. 
 
-## Cluster Support
+>> _On Monday, December 11, 2017 at 6:52:13 PM UTC+2, tw-bert wrote:_
+I am interested in the AIX portability of RediSearch, and am trying to get it working on AIX 7.1 x64.
+I got Redis 4.0.6 up and running pretty smoothly.
+I ran into a few issues with RediSearch 1.0.1 (1.0.2 was released a few minutes later ;) ), see here for my efforts so far: https://github.com/Panaedra/RediSearch .
+So, it does something, and even indexes the documents, but FT.SEARCH finds nothing.
+Any idea's on what's wrong? Can't put my finger on it. Any help appreciated.
+Cheers, TW
 
-RediSearch has a distributed cluster version that can scale to billions of documents and hundreds of servers. However, at the moment it is only available as part of Redis Labs Enterprise. See the [Redis Labs Website](https://redislabs.com/modules/redisearch/) for more info and contact information.
+ 
 
-### Not *yet* supported:
+### Extra build steps, Notes
 
-* Spelling correction
-* Aggregations
+Last working (well, a bit):
+A few loose compiles:
+```lisp
+gcc -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-result -fPIC -D_GNU_SOURCE -std=gnu99 -I"/src/redisearch/RediSearch-1.0.1/src" -DREDIS_MODULE_TARGET -DREDISMODULE_EXPERIMENTAL_API  -g -ggdb -O3  -maix64 -D_AIX -D_AIX53 -D_AIX61 -D_AIX71 -I/opt/freeware/include -Iinclude -c module.c -o module.o -MMD -MF module.d
+gcc -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-result -fPIC -D_GNU_SOURCE -std=gnu99 -I"/src/redisearch/RediSearch-1.0.1/src" -DREDIS_MODULE_TARGET -DREDISMODULE_EXPERIMENTAL_API  -g -ggdb -O3  -maix64 -D_AIX -D_AIX53 -D_AIX61 -D_AIX71 -I/opt/freeware/include -Iinclude -c thpool.c -o thpool.o -MMD -MF thpool.d
+gcc -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-result -fPIC -D_GNU_SOURCE -std=gnu99 -I"/src/redisearch/RediSearch-1.0.1/src" -DREDIS_MODULE_TARGET -DREDISMODULE_EXPERIMENTAL_API  -g -ggdb -O3  -maix64 -D_AIX -D_AIX53 -D_AIX61 -D_AIX71 -I/opt/freeware/include -Iinclude -c cndict_data.c -o cndict_data.o -MMD -MF cndict_data.d
+gcc -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-result -fPIC -D_GNU_SOURCE -std=gnu99 -I"/src/redisearch/RediSearch-1.0.1/src" -DREDIS_MODULE_TARGET -DREDISMODULE_EXPERIMENTAL_API  -g -ggdb -O3  -maix64 -D_AIX -D_AIX53 -D_AIX61 -D_AIX71 -I/opt/freeware/include -Iinclude -c extension.c -o extension.o -MMD -MF extension.d
+gcc -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-result -fPIC -D_GNU_SOURCE -std=gnu99 -I"/src/redisearch/RediSearch-1.0.1/src" -DREDIS_MODULE_TARGET -DREDISMODULE_EXPERIMENTAL_API  -g -ggdb -O3  -maix64 -D_AIX -D_AIX53 -D_AIX61 -D_AIX71 -I/opt/freeware/include -Iinclude -c fragmenter.c -o fragmenter.o -MMD -MF fragmenter.d
+```
 
-### License: AGPL
+Linking (command made via linux output of make V=1)
+```lisp
+gcc -maix64 -o redisearch.so highlight_processor.o  search_request.o inverted_index.o buffer.o tokenize.o spec.o tokenize_cn.o fragmenter.o index_result.o id_list.o config.o extension.o summarize_spec.o result_processor.o id_filter.o indexer.o numeric_index.o module.o document_basic.o stemmer.o doc_table.o index.o varint.o cndict_loader.o document.o query.o numeric_filter.o byte_offsets.o redis_index.o stopwords.o tag_index.o print_version.o sortable.o geo_index.o offset_vector.o gc.o qint.o concurrent_ctx.o forward_index.o query_parser/lexer.o query_parser/parser.o ext/default.o util/heap.o util/logging.o util/mempool.o util/minmax_heap.o util/fnv.o util/khtable.o util/array.o util/block_alloc.o trie/levenshtein.o trie/rune_util.o trie/sparse_vector.o trie/trie_type.o trie/trie.o dep/thpool/thpool.o dep/cndict/cndict_data.o trie/libtrie.a dep/triemap/libtriemap.a rmutil/librmutil.a dep/libnu/libnu.a dep/friso/libfriso.a dep/snowball/libstemmer.o dep/miniz/libminiz.a -shared -Bsymbolic -Bsymbolic-functions -ldl -lpthread -maix64 -L/opt/freeware/lib64 -L/opt/freeware/lib -Wl,-blibpath:/opt/freeware/lib64:/opt/freeware/lib/pthread/ppc64:/opt/freeware/lib:/usr/lib:/lib,-bmaxdata:0x80000000 -lc -lm
+```
 
-Which basically means you can freely use this for your own projects without "virality" to your code,
-as long as you're not modifying the module itself. See [This Blog Post](https://redislabs.com/blog/why-redis-labs-modules-are-agpl/) for more details.
+
+Linking output:
+```lisp
+ld: 0711-224 WARNING: Duplicate symbol: LOGGING_LEVEL
+ld: 0711-345 Use the -bloadmap or -bnoquiet option to obtain more information.
+COLLECT_GCC_OPTIONS='-v' '-o' 'redisearch.so' '-shared' '-B' 'symbolic' '-B' 'symbolic-functions' '-maix64' '-L/opt/freeware/lib64' '-L/opt/freeware/lib'
+```
+-> OK, at least we've got a .so
+
 
 

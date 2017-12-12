@@ -1,6 +1,21 @@
 #define RS_GC_C_
 
+#define _POSIX_C_SOURCE 200809L
+
+#ifdef _AIX
+#define _XOPEN_SOURCE 700
+// u_char *is* in AIX sys/types.h, have to investigate why not working... workaround for now:
+typedef unsigned char   u_char;
+#endif
+
+#include <inttypes.h>
 #include <math.h>
+#include <stdio.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+
 #include <assert.h>
 #include <sys/param.h>
 #include "inverted_index.h"

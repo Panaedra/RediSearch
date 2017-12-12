@@ -63,15 +63,16 @@ typedef struct jobqueue {
 } jobqueue;
 
 /* Thread */
-typedef struct thread {
+typedef struct thread_ {
   int id;                   /* friendly id               */
   pthread_t pthread;        /* pointer to actual thread  */
   struct thpool_* thpool_p; /* access to thpool          */
-} thread;
+} thread_;
+
 
 /* Threadpool */
 typedef struct thpool_ {
-  thread** threads;                 /* pointer to threads        */
+  thread_** threads;                 /* pointer to threads        */
   volatile int num_threads_alive;   /* threads currently alive   */
   volatile int num_threads_working; /* threads currently working */
   pthread_mutex_t thcount_lock;     /* used for thread count etc */
@@ -81,10 +82,10 @@ typedef struct thpool_ {
 
 /* ========================== PROTOTYPES ============================ */
 
-static int thread_init(thpool_* thpool_p, struct thread** thread_p, int id);
-static void* thread_do(struct thread* thread_p);
+static int thread_init_(thpool_* thpool_p, struct thread_** thread_p, int id);
+static void* thread_do(struct thread_* thread_p);
 static void thread_hold(int sig_id);
-static void thread_destroy(struct thread* thread_p);
+static void thread_destroy(struct thread_* thread_p);
 
 static int jobqueue_init(jobqueue* jobqueue_p);
 static void jobqueue_clear(jobqueue* jobqueue_p);
@@ -128,7 +129,7 @@ struct thpool_* thpool_init(int num_threads) {
   }
 
   /* Make threads in pool */
-  thpool_p->threads = (struct thread**)malloc(num_threads * sizeof(struct thread*));
+  thpool_p->threads = (struct thread_**)malloc(num_threads * sizeof(struct thread_*));
   if (thpool_p->threads == NULL) {
     err("thpool_init(): Could not allocate memory for threads\n");
     jobqueue_destroy(&thpool_p->jobqueue);
@@ -142,7 +143,7 @@ struct thpool_* thpool_init(int num_threads) {
   /* Thread init */
   int n;
   for (n = 0; n < num_threads; n++) {
-    thread_init(thpool_p, &thpool_p->threads[n], n);
+    thread_init_(thpool_p, &thpool_p->threads[n], n);
 #if THPOOL_DEBUG
     printf("THPOOL_DEBUG: Created thread %d in pool \n", n);
 #endif
@@ -252,11 +253,11 @@ int thpool_num_threads_working(thpool_* thpool_p) {
  * @param id            id to be given to the thread
  * @return 0 on success, -1 otherwise.
  */
-static int thread_init(thpool_* thpool_p, struct thread** thread_p, int id) {
+static int thread_init_(thpool_* thpool_p, struct thread_** thread_p, int id) {
 
-  *thread_p = (struct thread*)malloc(sizeof(struct thread));
+  *thread_p = (struct thread_*)malloc(sizeof(struct thread_));
   if (thread_p == NULL) {
-    err("thread_init(): Could not allocate memory for thread\n");
+    err("thread_init_(): Could not allocate memory for thread\n");
     return -1;
   }
 
@@ -282,10 +283,10 @@ static void thread_hold(int sig_id) {
 * In principle this is an endless loop. The only time this loop gets interuppted is once
 * thpool_destroy() is invoked or the program exits.
 *
-* @param  thread        thread that will run this function
+* @param  thread_       thread that will run this function
 * @return nothing
 */
-static void* thread_do(struct thread* thread_p) {
+static void* thread_do(struct thread_* thread_p) {
 
   /* Set thread name for profiling and debuging */
   char thread_name[128] = {0};
@@ -354,7 +355,7 @@ static void* thread_do(struct thread* thread_p) {
 }
 
 /* Frees a thread  */
-static void thread_destroy(thread* thread_p) {
+static void thread_destroy(thread_* thread_p) {
   free(thread_p);
 }
 
